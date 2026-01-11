@@ -2,6 +2,7 @@
 
 import logging
 import sys
+import asyncio
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 from pathlib import Path
@@ -271,8 +272,32 @@ async def import_markdown(args: ImportMarkdownInput) -> Dict[str, Any]:
 
 def main():
     """Run the Joplin MCP Server."""
-    logging.info("Starting Joplin MCP Server...")
-    mcp.run(transport='sse')
+    # Check if running as worker (stdio) for mcpo
+    if "--mcp-worker" in sys.argv:
+        # Run as standard MCP server (stdio)
+        logging.info("Starting Joplin MCP Server (Worker)...")
+        # FastMCP run() defaults to stdio if no transport specified,
+        # but we specify it explicitly to be sure.
+        mcp.run(transport='stdio')
+        return
+
+    # Otherwise run as mcpo proxy
+    try:
+        from mcpo.main import run
+    except ImportError:
+        logging.error("mcpo not installed. Please install it to use the proxy.")
+        sys.exit(1)
+
+    logging.info("Starting Joplin MCP Server (MCPO Proxy)...")
+    
+    # Run the mcpo proxy which wraps this script running in worker mode
+    asyncio.run(run(
+        server_command=[sys.executable, str(Path(__file__).absolute()), "--mcp-worker"],
+        host="0.0.0.0",
+        port=8000,
+        name="Joplin MCP",
+        description="Joplin MCP Server through MCPO"
+    ))
 
 if __name__ == "__main__":
     main()

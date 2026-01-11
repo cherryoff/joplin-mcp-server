@@ -6,7 +6,7 @@ authors = [
     { name = "David Weigend", email = "contact@weigend.studio" }
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 keywords = ["joplin", "mcp", "note-taking", "ai", "claude"]
 homepage = "https://weigend.studio"
@@ -16,7 +16,8 @@ dependencies = [
     "httpx",
     "python-dotenv",
     "requests",
-    "pydantic"
+    "pydantic",
+    "mcpo @ git+https://github.com/open-webui/mcpo.git"
 ]
 
 [project.optional-dependencies]
