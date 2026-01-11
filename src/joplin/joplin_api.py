@@ -217,8 +217,8 @@ class JoplinAPI:
         # Add token to params if needed
         if params is None:
             params = {}
-        if "token" not in params:
-            params["token"] = self.token
+        # if "token" not in params:
+        #     params["token"] = self.token
 
         try:
             response = requests.request(
@@ -229,6 +229,8 @@ class JoplinAPI:
                 headers=headers
             )
             response.raise_for_status()
+            if method == "DELETE":
+                return None
             return response.json()
 
         except requests.exceptions.RequestException as e:
@@ -370,7 +372,9 @@ class JoplinAPI:
         endpoint = f"notes/{note_id}"
         if permanent:
             endpoint += "?permanent=1"
-        self._make_request("DELETE", endpoint)
+        response = self._make_request("DELETE", endpoint)
+        print(response)
+        return response
 
     def search_notes(
         self,

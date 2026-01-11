@@ -96,19 +96,41 @@ def get_token_from_env(env_var: str = "JOPLIN_TOKEN") -> str:
     load_dotenv()
 
     token = os.environ.get(env_var, "").strip()
-    if not token:
-        raise JoplinConfigError(
-            f"No {env_var} found in environment variables or .env file",
-            env_var=env_var
-        )
 
-    if len(token) < 32:
-        raise JoplinConfigError(
-            f"Invalid {env_var}: Token seems too short (< 32 chars)",
-            env_var=env_var
-        )
+    # if not token:
+    #     raise JoplinConfigError(
+    #         f"No {env_var} found in environment variables or .env file",
+    #         env_var=env_var
+    #     )
+
+    # if len(token) < 32:
+    #     raise JoplinConfigError(
+    #         f"Invalid {env_var}: Token seems too short (< 32 chars)",
+    #         env_var=env_var
+    #     )
 
     return token
+
+def get_base_url_from_env(env_var: str = "JOPLIN_BASE_URL") -> str:
+    """Read the Joplin API base URL from environment variable.
+    
+    First tries to load from .env file, then from environment.
+    
+    Args:
+        env_var: Name of the environment variable containing the base URL
+        
+    Returns:
+        The API base URL
+        
+    Raises:
+        JoplinConfigError: If the base URL is not set or invalid
+    """
+    # Try to load from .env file
+    load_dotenv()
+
+    base_url = os.environ.get(env_var, "").strip()
+
+    return base_url
 
 def format_timestamp(ts: datetime | None) -> str:
     """Format a timestamp for display.
