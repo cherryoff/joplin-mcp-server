@@ -17,7 +17,7 @@ dependencies = [
     "python-dotenv",
     "requests",
     "pydantic",
-    "mcpo @ git+https://github.com/open-webui/mcpo.git"
+    "mcpo>=0.0.19"
 ]
 
 [project.optional-dependencies]

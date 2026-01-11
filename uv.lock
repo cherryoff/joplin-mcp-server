@@ -509,7 +509,7 @@ requires-dist = [
     { name = "black", marker = "extra == 'dev'", specifier = ">=24.1.1" },
     { name = "httpx" },
     { name = "mcp", extras = ["cli"] },
-    { name = "mcpo", git = "https://github.com/open-webui/mcpo.git" },
+    { name = "mcpo", specifier = ">=0.0.19" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.8.0" },
     { name = "pydantic" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
@@ -592,7 +592,7 @@ cli = [
 [[package]]
 name = "mcpo"
 version = "0.0.19"
-source = { git = "https://github.com/open-webui/mcpo.git#91e8f94da7ea07f0f19db7f8f0d9cfc9839d859a" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
     { name = "fastapi" },
@@ -604,6 +604,10 @@ dependencies = [
     { name = "typer" },
     { name = "uvicorn" },
     { name = "watchdog" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/22/96/a57adf8110349e755ce3a1120029723a2aa361d5b46848dcbee596224f5c/mcpo-0.0.19.tar.gz", hash = "sha256:b8faaa024e3cd47f35e87b28763613beb72dfb8e5db8327bd97cf88bc1ccf2af", size = 84192, upload-time = "2025-10-14T21:19:31.036Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/20/a94d08d9ba72f7aa6927fcab6df7a3026eb809d58dd78c155b3b14549d02/mcpo-0.0.19-py3-none-any.whl", hash = "sha256:50aca34e6612ac64773f6e0499856ac3c97cea730cd4fc668207557e73a035d1", size = 31787, upload-time = "2025-10-14T21:19:29.839Z" },
 ]
 
 [[package]]
