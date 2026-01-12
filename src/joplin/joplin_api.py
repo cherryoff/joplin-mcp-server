@@ -171,6 +171,60 @@ class JoplinNote:
             logger.error(f"Error creating JoplinNote: {e}")
             raise
 
+@dataclass
+class JoplinFolder:
+    """Joplin folder."""
+    id: str
+    title: str
+    parent_id: str | None = None
+    deleted_time: int | None = None
+
+    @classmethod
+    def from_api_response(cls, data: dict[str, Any]) -> "JoplinFolder":
+        """Create a JoplinFolder instance from API response data.
+
+        Args:
+            data: Raw API response dictionary
+
+        Returns:
+            JoplinFolder instance
+
+        Raises:
+            ValueError: If required fields are missing
+        """
+        try:
+            logger.debug(f"Creating JoplinFolder from API data: {data}")
+
+            # Ensure essential fields exist
+            if "id" not in data or "title" not in data:
+                msg = f"Missing essential fields (id/title) in API response: {data}"
+                raise ValueError(msg)
+
+            deleted_time = data.get("deleted_time")
+            if deleted_time:
+                deleted_time = datetime.fromtimestamp(deleted_time / 1000)
+
+            created_time = data.get("created_time")
+            if created_time:
+                created_time = datetime.fromtimestamp(created_time / 1000)
+
+            updated_time = data.get("updated_time")
+            if updated_time:
+                updated_time = datetime.fromtimestamp(updated_time / 1000)
+
+            return cls(
+                id=data["id"],
+                title=data["title"],
+                parent_id=data.get("parent_id"),
+                deleted_time=deleted_time,
+                created_time=created_time,
+                updated_time=updated_time,
+            )
+
+        except Exception as e:
+            logger.error(f"Error creating JoplinFolder: {e}")
+            raise
+
 class JoplinAPI:
     """Client for the Joplin REST API.
 
@@ -392,10 +446,39 @@ class JoplinAPI:
         """
         params = {
             "query": query,
-            "limit": limit
+            "limit": limit,
+            "fields": "id,title,body,created_time,updated_time,is_todo",
+            "type": "note",
         }
         response = self._make_request("GET", "search", params=params)
         return PaginatedResponse(
             items=[JoplinNote.from_api_response(item) for item in response["items"]],
+            has_more=response["has_more"]
+        )
+
+    def search_folders(
+        self,
+        query: str,
+        limit: int = 100
+    ) -> PaginatedResponse[JoplinFolder]:
+        """Search for folders.
+
+        Args:
+            query: Search query string
+            limit: Maximum number of results
+
+        Returns:
+            PaginatedResponse containing matching JoplinFolder objects
+        """
+        params = {
+            "query": query,
+            "limit": limit,
+            "type": "folder",
+            "fields": "id,title,parent_id,deleted_time,created_time,updated_time"
+        }
+        response = self._make_request("GET", "search", params=params)
+        print(response)
+        return PaginatedResponse(
+            items=[JoplinFolder.from_api_response(item) for item in response["items"]],
             has_more=response["has_more"]
         )

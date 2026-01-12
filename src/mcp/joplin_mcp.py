@@ -40,6 +40,11 @@ class SearchNotesInput(BaseModel):
     query: str
     limit: Optional[int] = 100
 
+class SearchFoldersInput(BaseModel):
+    """Input parameters for searching folders."""
+    query: str
+    limit: Optional[int] = 100
+
 class CreateNoteInput(BaseModel):
     """Input parameters for creating a note."""
     title: str
@@ -95,6 +100,42 @@ async def search_notes(args: SearchNotesInput) -> Dict[str, Any]:
         }
     except Exception as e:
         logger.error(f"Error searching notes: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+async def search_folders(args: SearchFoldersInput) -> Dict[str, Any]:
+    """Search for folders in Joplin.
+    
+    Args:
+        args: Search parameters
+            query: Search query string
+            limit: Maximum number of results (default: 100)
+    
+    Returns:
+        Dictionary containing search results
+    """
+    if not api:
+        return {"error": "Joplin API client not initialized"}
+    
+    try:
+        results = api.search_folders(query=args.query, limit=args.limit)
+        return {
+            "status": "success",
+            "total": len(results.items),
+            "has_more": results.has_more,
+            "folders": [
+                {
+                    "id": folder.id,
+                    "title": folder.title,
+                    "parent_id": folder.parent_id,
+                    "created_time": folder.created_time.isoformat() if folder.created_time else None,
+                    "updated_time": folder.updated_time.isoformat() if folder.updated_time else None,
+                }
+                for folder in results.items
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error searching folders: {e}")
         return {"error": str(e)}
 
 @mcp.tool()
