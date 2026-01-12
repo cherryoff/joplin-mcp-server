@@ -64,6 +64,23 @@ class ImportMarkdownInput(BaseModel):
     """Input parameters for importing markdown files."""
     file_path: str
 
+class CreateFolderInput(BaseModel):
+    """Input parameters for creating a folder."""
+    title: str
+    parent_id: Optional[str] = None
+
+class UpdateFolderInput(BaseModel):
+    """Input parameters for updating a folder."""
+    folder_id: str
+    title: Optional[str] = None
+    parent_id: Optional[str] = None
+
+class GetFolderNotesInput(BaseModel):
+    """Input parameters for retrieving notes in a folder."""
+    folder_id: str
+    limit: Optional[int] = 100
+
+
 # MCP Tools
 @mcp.tool()
 async def search_notes(args: SearchNotesInput) -> Dict[str, Any]:
@@ -310,6 +327,112 @@ async def import_markdown(args: ImportMarkdownInput) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error importing markdown: {e}")
         return {"error": str(e)}
+
+@mcp.tool()
+async def create_folder(args: CreateFolderInput) -> Dict[str, Any]:
+    """Create a new folder in Joplin.
+    
+    Args:
+        args: Folder creation parameters
+            title: Folder title
+            parent_id: ID of parent folder (optional)
+    
+    Returns:
+        Dictionary containing the created folder data
+    """
+    if not api:
+        return {"error": "Joplin API client not initialized"}
+    
+    try:
+        folder = api.create_folder(title=args.title, parent_id=args.parent_id)
+        return {
+            "status": "success",
+            "folder": {
+                "id": folder.id,
+                "title": folder.title,
+                "parent_id": folder.parent_id,
+                "created_time": folder.created_time.isoformat() if folder.created_time else None,
+                "updated_time": folder.updated_time.isoformat() if folder.updated_time else None,
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error creating folder: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+async def update_folder(args: UpdateFolderInput) -> Dict[str, Any]:
+    """Update an existing folder in Joplin.
+    
+    Args:
+        args: Folder update parameters
+            folder_id: ID of folder to update
+            title: New title (optional)
+            parent_id: New parent folder ID (optional)
+    
+    Returns:
+        Dictionary containing the updated folder data
+    """
+    if not api:
+        return {"error": "Joplin API client not initialized"}
+    
+    try:
+        folder = api.update_folder(
+            folder_id=args.folder_id,
+            title=args.title,
+            parent_id=args.parent_id
+        )
+        return {
+            "status": "success",
+            "folder": {
+                "id": folder.id,
+                "title": folder.title,
+                "parent_id": folder.parent_id,
+                "created_time": folder.created_time.isoformat() if folder.created_time else None,
+                "updated_time": folder.updated_time.isoformat() if folder.updated_time else None,
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error updating folder: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+async def get_folder_notes(args: GetFolderNotesInput) -> Dict[str, Any]:
+    """Get all notes in a specific folder.
+    
+    Args:
+        args: Folder notes retrieval parameters
+            folder_id: ID of the folder
+            limit: Maximum number of results (default: 100)
+    
+    Returns:
+        Dictionary containing list of notes
+    """
+    if not api:
+        return {"error": "Joplin API client not initialized"}
+    
+    try:
+        results = api.get_folder_notes(folder_id=args.folder_id, limit=args.limit)
+        return {
+            "status": "success",
+            "total": len(results.items),
+            "has_more": results.has_more,
+            "notes": [
+                {
+                    "id": note.id,
+                    "title": note.title,
+                    "body": note.body,
+                    "created_time": note.created_time.isoformat() if note.created_time else None,
+                    "updated_time": note.updated_time.isoformat() if note.updated_time else None,
+                    "is_todo": note.is_todo
+                }
+                for note in results.items
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error getting folder notes: {e}")
+        return {"error": str(e)}
+
+
 
 def main():
     """Run the Joplin MCP Server."""

@@ -178,6 +178,8 @@ class JoplinFolder:
     title: str
     parent_id: str | None = None
     deleted_time: int | None = None
+    created_time: datetime | None = None
+    updated_time: datetime | None = None
 
     @classmethod
     def from_api_response(cls, data: dict[str, Any]) -> "JoplinFolder":
@@ -480,5 +482,89 @@ class JoplinAPI:
         print(response)
         return PaginatedResponse(
             items=[JoplinFolder.from_api_response(item) for item in response["items"]],
+            has_more=response["has_more"]
+        )
+
+    def create_folder(self, title: str, parent_id: str | None = None) -> JoplinFolder:
+        """Create a new folder.
+
+        Args:
+            title: Folder title
+            parent_id: Parent folder ID
+
+        Returns:
+            Created JoplinFolder object
+        """
+        data = {"title": title}
+        if parent_id:
+            data["parent_id"] = parent_id
+
+        response = self._make_request("POST", "folders", json=data)
+        return JoplinFolder.from_api_response(response)
+
+    def update_folder(
+        self,
+        folder_id: str,
+        title: str | None = None,
+        parent_id: str | None = None
+    ) -> JoplinFolder:
+        """Update an existing folder.
+
+        Args:
+            folder_id: Folder ID to update
+            title: New title
+            parent_id: New parent folder ID
+
+        Returns:
+            Updated JoplinFolder object
+        """
+        data = {}
+        if title is not None:
+            data["title"] = title
+        if parent_id is not None:
+            data["parent_id"] = parent_id
+
+        response = self._make_request("PUT", f"folders/{folder_id}", json=data)
+        return JoplinFolder.from_api_response(response)
+
+    def get_folder_notes(
+        self,
+        folder_id: str,
+        page: int = 1,
+        limit: int = 100,
+        fields: list[str] | None = None,
+        order_by: str = "updated_time",
+        order_dir: OrderDirection = OrderDirection.DESC
+    ) -> PaginatedResponse[JoplinNote]:
+        """Get all notes in a specific folder.
+
+        Args:
+            folder_id: ID of the folder
+            page: Page number
+            limit: Items per page
+            fields: List of fields to include in response
+            order_by: Field to sort by
+            order_dir: Sort direction
+
+        Returns:
+            PaginatedResponse containing list of JoplinNote objects
+        """
+        params = {
+            "page": page,
+            "limit": limit,
+            "order_by": order_by,
+            "order_dir": order_dir.value
+        }
+
+        if fields:
+            params["fields"] = ",".join(fields)
+        else:
+            # Default fields if none provided, consistent with get_note/search
+             params["fields"] = "id,title,body,created_time,updated_time,is_todo"
+
+        response = self._make_request("GET", f"folders/{folder_id}/notes", params=params)
+        
+        return PaginatedResponse(
+            items=[JoplinNote.from_api_response(item) for item in response["items"]],
             has_more=response["has_more"]
         )
