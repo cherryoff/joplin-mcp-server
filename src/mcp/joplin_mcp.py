@@ -107,7 +107,7 @@ async def search_notes(args: SearchNotesInput) -> Dict[str, Any]:
                 {
                     "id": note.id,
                     "title": note.title,
-                    "body": note.body,
+                    #"body": note.body,
                     "created_time": note.created_time.isoformat() if note.created_time else None,
                     "updated_time": note.updated_time.isoformat() if note.updated_time else None,
                     "is_todo": note.is_todo
@@ -145,7 +145,7 @@ async def search_folders(args: SearchFoldersInput) -> Dict[str, Any]:
                     "id": folder.id,
                     "title": folder.title,
                     "parent_id": folder.parent_id,
-                    "created_time": folder.created_time.isoformat() if folder.created_time else None,
+                   "created_time": folder.created_time.isoformat() if folder.created_time else None,
                     "updated_time": folder.updated_time.isoformat() if folder.updated_time else None,
                 }
                 for folder in results.items
